@@ -68,7 +68,7 @@ function findOrders( doc, year, page )
             console.log( "No date found " + year + "/" + page );
         }
         
-        var linkElement = getTagElement( orderLevels[ i ], "A" );
+        var linkElement = orderLevels[ i ].getElementsByTagName('a')[1];
         if( linkElement )
         {
             order.link = linkElement.href;
@@ -78,13 +78,13 @@ function findOrders( doc, year, page )
             console.log( "No link found " + year + "/" + page );
         }
         
-        var nameElements = getClassElements( orderBars[ i ], "item-title" );
+        var nameElements = getClassElements( orderBars[ i ], "a-fixed-left-grid-col a-col-right" );
         if( nameElements.length > 0 )
         {
             var names = [];
             for( var j = 0; j < nameElements.length; j++ )
             {
-                names.push( nameElements[ j ].innerHTML.trim() );
+                names.push( nameElements[ j ].getElementsByTagName('A')[0].innerHTML.trim() );
             }
             order.names = names;
             order.products = names.length;
