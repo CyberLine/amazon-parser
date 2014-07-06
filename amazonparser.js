@@ -51,7 +51,7 @@ function findOrders( doc, year, page )
         var priceElement = getClassElement( orderLevels[ i ], "a-column a-span2" );
         if( priceElement )
         {
-            order.price = priceElement.innerHTML.replace(/EUR/,"").replace(/Summe/,"").trim();
+            order.price = priceElement.getElementsByClassName('a-color-secondary value')[0].innerHTML.replace(/EUR/,"").replace(/Summe/,"").trim();
         }
         else
         {
@@ -189,7 +189,7 @@ function printOrders()
 	   	 		var entry = orders[ i ].pages[ j ].entries[ k ];
 
         		var price = entry.price.replace(/\./,"").split( "," );
-        		var cent = parseInt( price[ 0 ] ) * 100 + parseInt( price[ 1 ] ); 
+        		var cent = parseInt( price[ 0 ] ) * 100 + parseInt( price[ 1 ] );
 	   	 		
 	   	 		year.cent += cent;
 	   	 		year.products += entry.products;
