@@ -1,6 +1,11 @@
 amazon-parser
 =============
 
+Showing your complete Amazon order history.
+
+
+About
+--
 
 JavaScript, um eine tabellarische Übersicht aller auf amazon.de getätigten Bestellungen zu erhalten.
 
