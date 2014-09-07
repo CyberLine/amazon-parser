@@ -51,7 +51,14 @@ function findOrders( doc, year, page )
         var priceElement = getClassElement( orderLevels[ i ], "a-column a-span2" );
         if( priceElement )
         {
-            order.price = priceElement.getElementsByClassName('a-color-secondary value')[0].innerHTML.replace(/EUR/,"").replace(/Summe/,"").trim();
+            // sometimes there is no price listed next to the item anymore, so we have to check that and insert 0,00 if it's missing
+            var price_tag = priceElement.getElementsByClassName('a-color-secondary value');
+            if (price_tag.length > 0) {
+                order.price = priceElement.getElementsByClassName('a-color-secondary value')[0].innerHTML.replace(/EUR/,"").replace(/Summe/,"").trim();
+            }
+            else {
+                order.price = "0,00";
+            }
         }
         else
         {
@@ -84,7 +91,14 @@ function findOrders( doc, year, page )
             var names = [];
             for( var j = 0; j < nameElements.length; j++ )
             {
-                names.push( nameElements[ j ].getElementsByTagName('A')[0].innerHTML.trim() );
+                // sometimes there is no link to the item, then we have to fetch the name of the item from the div tag
+                var a_tags = nameElements[ j ].getElementsByTagName('A');
+                if (a_tags.length > 0) {
+                    names.push( nameElements[ j ].getElementsByTagName('A')[0].innerHTML.trim() );
+                }
+                else {
+                    names.push( nameElements[ j ].getElementsByTagName('DIV')[0].innerHTML.trim() );
+                }
             }
             order.names = names;
             order.products = names.length;
