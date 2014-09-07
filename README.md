@@ -23,7 +23,7 @@ How To
 * kompletten Inhalt des Scripts in die Javascript-Konsole kopieren
 * Enter-Taste betätigen
 
-Oder einfach das [Bookmarklet](amazonparser-bookmarket.html) verwenden.
+Oder einfach das [Bookmarklet](amazonparser-bookmarklet.html) verwenden.
 
 
 Hinweise
