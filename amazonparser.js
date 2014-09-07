@@ -115,7 +115,7 @@ function printState()
         s += "\n";
     }
 
-    mainBrowser.contentDocument.body.innerHTML = "<pre>" + s + "</pre>";
+    document.body.innerHTML = "<pre>" + s + "</pre>";
 }
 
 function getEuroString( x )
@@ -241,7 +241,7 @@ function printOrders()
     }
     text += "</table>";
 
-    mainBrowser.contentDocument.body.innerHTML = text;
+    document.body.innerHTML = text;
 }
 
 function loadOrders( event )
@@ -252,9 +252,9 @@ function loadOrders( event )
     }
     event.currentTarget.onlyOnce = true;
 
-    findOrders( event.currentTarget.contentDocument, event.currentTarget.yearIndex, event.currentTarget.pageIndex );
+    findOrders( event.currentTarget.document, event.currentTarget.yearIndex, event.currentTarget.pageIndex );
 
-    event.currentTarget.contentWindow.close();
+    event.currentTarget.close();
 }
 
 function loadYear( event )
@@ -265,7 +265,7 @@ function loadYear( event )
     }
     event.currentTarget.onlyOnce = true;
 
-    var doc = event.currentTarget.contentDocument;
+    var doc = event.currentTarget.document;
     var as = doc.getElementsByTagName( "a" );
     var maxIndex = 0;
     for( var i = 0; i < as.length; i++ )
@@ -291,7 +291,7 @@ function loadYear( event )
     var pageIndex = 1;
     for( var i = 10; i <= maxIndex; i += 10 )
     {
-        var pageTab = gBrowser.getBrowserForTab( gBrowser.addTab( pageUri + i ) );
+        var pageTab = window.open( pageUri + i );
         pageTab.yearIndex = year;
         pageTab.pageIndex = pageIndex;
         pageTab.addEventListener( "load", loadOrders, true );
@@ -299,7 +299,7 @@ function loadYear( event )
         pageIndex++;
     }
 
-    event.currentTarget.contentWindow.close();
+    event.currentTarget.close();
 }
 
 function loadYearCount( event )
@@ -310,7 +310,7 @@ function loadYearCount( event )
     }
     event.currentTarget.onlyOnce = true;
 
-    var doc = event.currentTarget.contentDocument;
+    var doc = event.currentTarget.document;
     var form = doc.getElementsByClassName('time-period-chooser a-spacing-none')[0];
     var filter = doc.getElementsByName('orderFilter')[0];
 
@@ -341,12 +341,14 @@ function loadYearCount( event )
 
     for( var i = 0; i < orders.length; i++ )
     {
-        var yearTab = gBrowser.getBrowserForTab( gBrowser.addTab( yearUri + orders[ i ].year ) );
+        var yearTab = window.open( yearUri + orders[ i ].year );
         yearTab.yearIndex = i;
         yearTab.addEventListener( "load", loadYear, true );
     }
 
     waitInterval = setInterval( waitForFinish, 1000 );
+
+    event.currentTarget.close();
 }
 
 function waitForFinish()
@@ -375,7 +377,5 @@ function waitForFinish()
 var orders = [];
 var waitInterval;
 
-var mainTab = gBrowser.addTab( "https://www.amazon.de/gp/css/order-history/ref=ya_orders_css" );
-gBrowser.selectedTab = mainTab;
-var mainBrowser = gBrowser.getBrowserForTab( mainTab );
-mainBrowser.addEventListener( "load", loadYearCount, true );
+var mainTab = window.open("https://www.amazon.de/gp/css/order-history/ref=ya_orders_css");
+mainTab.addEventListener( "load", loadYearCount, true );
