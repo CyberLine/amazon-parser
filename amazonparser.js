@@ -54,7 +54,7 @@ function findOrders( doc, year, page )
             // sometimes there is no price listed next to the item anymore, so we have to check that and insert 0,00 if it's missing
             var price_tag = priceElement.getElementsByClassName('a-color-secondary value');
             if (price_tag.length > 0) {
-                order.price = priceElement.getElementsByClassName('a-color-secondary value')[0].innerHTML.replace(/EUR/,"").replace(/Summe/,"").trim();
+                order.price = priceElement.getElementsByClassName('a-color-secondary value')[0].innerHTML.replace(/EUR/,"").replace(/Summe/,"").replace(/.*coins/i,"0,00").trim();
             }
             else {
                 order.price = "0,00";
