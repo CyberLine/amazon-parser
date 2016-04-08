@@ -46,7 +46,7 @@ function findOrders( doc, year, page )
 
     for( var i = 0; i < orderLevels.length; i++ )
     {
-        var order = { "price" : "0,00", "date" : "?", "link" : "", "names" : [], "products" : 0 };
+        var order = { "price" : "0,00", "date" : "?", "link" : "", "names" : [], "products" : 0 , "recip" : ""};
 
         var priceElement = getClassElement( orderLevels[ i ], "a-column a-span2" );
         if( priceElement )
@@ -65,6 +65,22 @@ function findOrders( doc, year, page )
             console.log( "No price found " + year + "/" + page );
         }
 
+	var recipElement = getClassElement( orderLevels[ i ], "a-column a-span6 recipient a-span-last" );
+        if( recipElement )
+        {
+            var recip_tag = recipElement.getElementsByClassName('trigger-text');
+            if (recip_tag.length > 0) {
+                order.recip = recipElement.getElementsByClassName('trigger-text')[0].innerHTML.trim();
+            }
+            else {
+                order.recip = "?";
+            }
+        }
+        else
+        {
+            console.log( "No recipient found " + year + "/" + page );
+        }
+        
         var dateElement = getClassElement( orderLevels[ i ], "a-color-secondary value" );
         if( dateElement )
         {
@@ -178,6 +194,7 @@ function getOrderLine( data )
         "<td align=\"center\" valign=\"top\">" + data.products + "</td>" +
         "<td align=\"right\" valign=\"top\">" + data.price + "</td>" +
         "<td align=\"left\" valign=\"top\">" + nameList + "</td>" +
+        "<td align=\"left\" valign=\"top\">" + data.recip + "</td>" +
         "</tr>";
 }
 
@@ -221,7 +238,7 @@ function printOrders()
         years.push( year );
     }
 
-    var text = "<h2>Übersicht</h2>";
+    var text = "<h2>Uebersicht</h2>";
 
     text += "<table cellspacing=\"0\" cellpadding=\"4\" border=\"1\"><tr>" +
         "<th>Jahr</th>" +
@@ -247,6 +264,7 @@ function printOrders()
         "<th>Produkte</th>" +
         "<th>Preis</th>" +
         "<th>Produktbeschreibungen</th>" +
+        "<th>Versandadresse</th>" +
         "</tr>";
 
     for( var i = 0; i < allOrders.length; i++ )
