@@ -1,5 +1,8 @@
 function getClassElement( node, name )
 {
+	if (node == null)
+		return null;
+	
     if( node.className == name ) return node;
     for( var i = 0; i < node.childNodes.length; i++ )
     {
@@ -11,6 +14,9 @@ function getClassElement( node, name )
 
 function getClassElements( node, name )
 {
+	if (node == null)
+		return null;
+	
     if( node.className == name ) return [ node ];
     var elements = [];
     for( var i = 0; i < node.childNodes.length; i++ )
@@ -136,6 +142,109 @@ function findOrders( doc, year, page )
     }
 }
 
+function findShipments(doc, year, page) {
+    var orderElements = doc.getElementsByClassName('a-box-group a-spacing-base');
+    for (var i = 0; i < orderElements.length; i++) {
+
+		var orderNumber = "";
+		var orderPrice = "";
+		var orderDate = "";
+
+        var orderInfo = orderElements[i].getElementsByClassName('order-info');
+        if (orderInfo.length == 1) {
+
+            var colRight = orderInfo[0].getElementsByClassName('a-col-right');
+            if (colRight.length == 1 ) {
+                var orderNrElements = colRight[0].getElementsByClassName('a-color-secondary value');
+				if (orderNrElements.length > 0) {
+					orderNumber = orderNrElements[0].textContent.trim();
+				}
+				else {
+				    console.log('No order number found ' + year + '/' + page);
+				}
+            }
+            else {
+                console.log('No order number found ' + year + '/' + page);
+            }
+
+            var priceElement = getClassElement(orderElements[i], 'a-column a-span2');
+            if (priceElement) {
+                var price_tag = priceElement.getElementsByClassName('a-color-secondary value');
+                if (price_tag.length > 0) {
+                    orderPrice = priceElement.getElementsByClassName('a-color-secondary value')[0].innerHTML.replace(/EUR/, '').replace(/Summe/, '').replace(/.*coins/i, '0,00').trim();
+                } else {
+                    orderPrice = '0,00';
+                }
+            } else {
+                console.log('No price found ' + year + '/' + page);
+            }
+
+            var dateElement = getClassElement(orderElements[i], 'a-color-secondary value');
+            if (dateElement) {
+                orderDate = dateElement.innerHTML.trim();
+            } else {
+                console.log('No date found ' + year + '/' + page);
+            }
+        }
+
+        // walking through shipments of the order
+        var shipmentElements = orderElements[i].getElementsByClassName('a-box shipment');
+        for (var s = 0; s < shipmentElements.length; s++) {
+            var shipment = {
+                'orderNumber' : orderNumber,
+                'orderPrice' : orderPrice,
+                'orderDate' : orderDate,
+                'shipmentDate' : '?',
+                'names': [],
+                'prices': [],
+                'products': 0
+            };
+
+            // finding shipment date:
+			var topRowElement = getClassElement(shipmentElements[s], 'a-row shipment-top-row')
+            var dateElement = getClassElement(topRowElement,'a-size-medium a-color-base a-text-bold');
+            if (dateElement) {
+                shipment.date = dateElement.innerHTML.trim();
+            } else {
+                console.log('No shipment date found ' + year + '/' + page);
+            }
+
+            // finding Items of the shipment
+            var nameElements = getClassElements(orderElements[i], 'a-fixed-left-grid-col a-col-right');
+            if (nameElements.length > 0) {
+                var names = [];
+                var prices = [];
+				var cent = 0;
+                for (var j = 0; j < nameElements.length; j++) {
+                    var a_tags = nameElements[j].getElementsByTagName('A');
+                    if (a_tags.length > 0) {
+                        names.push(nameElements[j].getElementsByTagName('A')[0].innerHTML.trim());
+                    } else {
+                        names.push(nameElements[j].getElementsByTagName('DIV')[0].innerHTML.trim());
+                    }
+
+                    var a_price = getClassElement(nameElements[j],'a-size-small a-color-price');
+                    if (a_price) {
+						var priceStr = a_price.textContent.trim();
+                        prices.push(priceStr);
+						var priceStr = priceStr.replace(/EUR/,"").replace(/Summe/,"").replace(/.*coins/i,"0,00");
+						var price = priceStr.replace(/\./,"").split( "," );
+						cent += parseInt( price[ 0 ] ) * 100 + parseInt( price[ 1 ] );
+                    }
+                }
+                shipment.names = names;
+                shipment.prices = prices;
+                shipment.products = names.length;
+				shipment.price = getEuroString(cent / 100);
+            } else {
+                console.log('No item names in shpiment found ' + year + '/' + page);
+            }
+
+        }
+        shipments.push(shipment);
+    }
+}
+
 function printState()
 {
     var s = "";
@@ -201,10 +310,31 @@ function getOrderLine( data )
         "<td align=\"right\" valign=\"top\">" + data.date + "</td>" +
         "<td align=\"center\" valign=\"top\">" + data.products + "</td>" +
         "<td align=\"right\" valign=\"top\">" + data.price + "</td>" +
-        "<td align=\"left\" valign=\"top\">" + nameList + "</td>" +
         "<td align=\"left\" valign=\"top\">" + data.recip + "</td>" +
+		"<td align=\"left\" valign=\"top\">" + nameList + "</td>" +
         "</tr>";
 }
+
+function getShipmentLine( shipment )
+{
+    var nameList = "<ul style=\"margin:0; padding:0 0 0 2em\">";
+    for( var i = 0; i < shipment.names.length; i++ )
+    {
+        nameList += '<li>' + shipment.names[ i ] +  ' | ' + shipment.prices[ i ] + '</li>';
+    }
+    nameList += "</ul>";
+
+    return "<tr>" +
+        "<td align=\"center\" valign=\"top\">" + shipment.orderNumber + "</td>" +
+        "<td align=\"right\" valign=\"top\">" + shipment.orderDate + "</td>" +
+        "<td align=\"center\" valign=\"top\">" + shipment.orderPrice + "</td>" +
+        "<td align=\"right\" valign=\"top\">" + shipment.shipmentDate + "</td>" +
+        "<td align=\"left\" valign=\"top\">" + shipment.products + "</td>" +
+		"<td align=\"left\" valign=\"top\">" + shipment.price + "</td>" +
+		"<td align=\"left\" valign=\"top\">" + nameList + "</td>" +
+        "</tr>";
+}
+
 
 function printOrders()
 {
@@ -271,13 +401,31 @@ function printOrders()
         "<th>Datum</th>" +
         "<th>Produkte</th>" +
         "<th>Preis</th>" +
-        "<th>Produktbeschreibungen</th>" +
         "<th>Versandadresse</th>" +
+		"<th>Produktbeschreibungen</th>" +
         "</tr>";
 
     for( var i = 0; i < allOrders.length; i++ )
     {
         text += getOrderLine( allOrders[ i ] );
+    }
+    text += "</table>";
+	
+	text += "<h2>Lieferungen</h2>";
+
+    text += "<table cellspacing=\"0\" cellpadding=\"4\" border=\"1\"><tr>" +
+        "<th>Bestellnummer</th>" +
+        "<th>Bestelldatum</th>" +
+        "<th>Bestellsumme</th>" +
+        "<th>Lieferdatum</th>" +
+        "<th>Anzahl Produkte</th>" +
+		"<th>Summe / Abbuchung</th>" +
+		"<th>Produkte | Preis</th>" +
+        "</tr>";
+
+    for( var i = 0; i < shipments.length; i++ )
+    {
+        text += getShipmentLine( shipments[ i ] );
     }
     text += "</table>";
 
@@ -293,6 +441,7 @@ function loadOrders( event )
     event.currentTarget.onlyOnce = true;
 
     findOrders( event.currentTarget.document, event.currentTarget.yearIndex, event.currentTarget.pageIndex );
+	findShipments( event.currentTarget.document, event.currentTarget.yearIndex, event.currentTarget.pageIndex );
 
     event.currentTarget.close();
 }
@@ -415,6 +564,7 @@ function waitForFinish()
 }
 
 var orders = [];
+var shipments = [];
 var waitInterval;
 
 var mainTab = window.open("https://www.amazon.de/gp/css/order-history/ref=ya_orders_css");
