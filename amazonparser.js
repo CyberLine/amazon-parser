@@ -105,6 +105,8 @@ function findOrders( doc, year, page )
         if( nameElements.length > 0 )
         {
             var names = [];
+			var prices = [];
+			
             for( var j = 0; j < nameElements.length; j++ )
             {
                 // sometimes there is no link to the item, then we have to fetch the name of the item from the div tag
@@ -115,8 +117,14 @@ function findOrders( doc, year, page )
                 else {
                     names.push( nameElements[ j ].getElementsByTagName('DIV')[0].innerHTML.trim() );
                 }
+				
+				var a_price = getClassElement(nameElements[j],'a-size-small a-color-price');
+                if (a_price) {
+                    prices.push(a_price.textContent.trim());
+                }
             }
             order.names = names;
+			order.prices = prices;
             order.products = names.length;
         }
         else
@@ -184,7 +192,7 @@ function getOrderLine( data )
     var nameList = "<ul style=\"margin:0; padding:0 0 0 2em\">";
     for( var i = 0; i < data.names.length; i++ )
     {
-        nameList += "<li>" + data.names[ i ] + "</li>";
+        nameList += '<li>' + data.names[ i ] +  ' | ' + data.prices[ i ] + '</li>';
     }
     nameList += "</ul>";
 
