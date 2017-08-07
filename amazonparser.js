@@ -46,7 +46,7 @@ function findOrders( doc, year, page )
 
     for( var i = 0; i < orderLevels.length; i++ )
     {
-        var order = { "price" : "0,00", "date" : "?", "link" : "", "names" : [], "products" : 0 , "recip" : ""};
+        var order = { "price" : "0,00", "date" : "?", "link" : "", "names" : [], "prices" : [], "products" : 0 , "recip" : ""};
 
         var priceElement = getClassElement( orderLevels[ i ], "a-column a-span2" );
         if( priceElement )
