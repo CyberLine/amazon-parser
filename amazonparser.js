@@ -194,9 +194,10 @@ function findShipments(doc, year, page) {
                 'orderNumber' : orderNumber,
                 'orderPrice' : orderPrice,
                 'orderDate' : orderDate,
-                'shipmentDate' : '?',
+                'date' : '?',
                 'names': [],
                 'prices': [],
+				'price': 0,
                 'products': 0
             };
 
@@ -210,11 +211,14 @@ function findShipments(doc, year, page) {
             }
 
             // finding Items of the shipment
-            var nameElements = getClassElements(orderElements[i], 'a-fixed-left-grid-col a-col-right');
+            var nameElements = getClassElements(shipmentElements[s], 'a-fixed-left-grid-col a-col-right');
             if (nameElements.length > 0) {
                 var names = [];
                 var prices = [];
-				var cent = 0;
+				var totalCent = 0;
+				var totalCount = 0;
+				var priceNotFound = false;
+				
                 for (var j = 0; j < nameElements.length; j++) {
                     var a_tags = nameElements[j].getElementsByTagName('A');
                     if (a_tags.length > 0) {
@@ -222,26 +226,49 @@ function findShipments(doc, year, page) {
                     } else {
                         names.push(nameElements[j].getElementsByTagName('DIV')[0].innerHTML.trim());
                     }
-
-                    var a_price = getClassElement(nameElements[j],'a-size-small a-color-price');
+					
+					var qty = getClassElement(nameElements[j].parentElement, 'item-view-qty');
+					if (qty) {
+						qty = parseInt ( qty.textContent.trim());
+						if (isNaN(qty)) {
+							qty = 1;
+						}
+					}
+					else {
+						qty = 1;
+					}
+					
+					var a_price = getClassElement(nameElements[j],'a-size-small a-color-price');
                     if (a_price) {
 						var priceStr = a_price.textContent.trim();
                         prices.push(priceStr);
-						var priceStr = priceStr.replace(/EUR/,"").replace(/Summe/,"").replace(/.*coins/i,"0,00");
-						var price = priceStr.replace(/\./,"").split( "," );
-						cent += parseInt( price[ 0 ] ) * 100 + parseInt( price[ 1 ] );
+						var price = priceStr.replace(/EUR/,"").replace(/Summe/,"").replace(/.*coins/i,"0,00").trim().replace(/\./,"").split( "," );
+						var centPrice = parseInt( price[ 0 ] ) * 100 + parseInt( price[ 1 ] );
+						if (isNaN(centPrice))
+							priceNotFound = true;
+						else
+							totalCent += centPrice * qty;
                     }
+					
+					totalCount += qty;
                 }
                 shipment.names = names;
                 shipment.prices = prices;
-                shipment.products = names.length;
-				shipment.price = getEuroString(cent / 100);
+                shipment.products = totalCount;
+				
+				if (shipmentElements.length == 1) {
+					shipment.price = orderPrice;
+				}
+				else {
+					shipment.price = getEuroString(totalCent / 100);
+					if (priceNotFound)
+						shipment.price = '*' + shipment.price ;
+				}
             } else {
                 console.log('No item names in shpiment found ' + year + '/' + page);
             }
-
+			shipments.push(shipment);
         }
-        shipments.push(shipment);
     }
 }
 
@@ -317,18 +344,16 @@ function getOrderLine( data )
 
 function getShipmentLine( shipment )
 {
-    var nameList = "<ul style=\"margin:0; padding:0 0 0 2em\">";
-    for( var i = 0; i < shipment.names.length; i++ )
-    {
-        nameList += '<li>' + shipment.names[ i ] +  ' | ' + shipment.prices[ i ] + '</li>';
+    var nameList = "";
+    for( var i = 0; i < shipment.names.length; i++ ) {
+        nameList += shipment.names[ i ] +  ' | ' + shipment.prices[ i ] + ' # ';
     }
-    nameList += "</ul>";
 
     return "<tr>" +
         "<td align=\"center\" valign=\"top\">" + shipment.orderNumber + "</td>" +
         "<td align=\"right\" valign=\"top\">" + shipment.orderDate + "</td>" +
         "<td align=\"center\" valign=\"top\">" + shipment.orderPrice + "</td>" +
-        "<td align=\"right\" valign=\"top\">" + shipment.shipmentDate + "</td>" +
+        "<td align=\"right\" valign=\"top\">" + shipment.date + "</td>" +
         "<td align=\"left\" valign=\"top\">" + shipment.products + "</td>" +
 		"<td align=\"left\" valign=\"top\">" + shipment.price + "</td>" +
 		"<td align=\"left\" valign=\"top\">" + nameList + "</td>" +
@@ -473,6 +498,7 @@ function loadYear( event )
     }
 
     findOrders( doc, year, 0 );
+	findShipments( doc, year, 0 );
 
     var pageUri = "https://www.amazon.de/gp/css/order-history/gp/css/order-history/ref=oss_pagination?ie=UTF8&orderFilter=" +
         orders[ year ].year + "&search=&startIndex=";
