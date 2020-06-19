@@ -534,7 +534,10 @@ function loadYearCount( event )
         var regex = /year-(\d\d\d\d)/;
         if( regex.exec( filter.options[ i ].value ) )
         {
-            orders.push( { "year" : filter.options[ i ].value, "pages" : [] } );
+            var year = filter.options[i].value;
+            if (yearToLoad == false || yearToLoad == year) {
+                orders.push({ "year": filter.options[i].value, "pages": [] });
+            }
         }
     }
 
@@ -592,6 +595,7 @@ function waitForFinish()
 var orders = [];
 var shipments = [];
 var waitInterval;
+var yearToLoad = false; // = "year-2019"; // for all years, set to false, for a specific year, use syntax "year-####"
 
 var mainTab = window.open("https://www.amazon.de/gp/css/order-history/ref=ya_orders_css");
 mainTab.addEventListener( "load", loadYearCount, true );
