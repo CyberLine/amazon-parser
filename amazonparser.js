@@ -45,11 +45,22 @@ function findOrders(doc, year, page) {
     for (var i = 0; i < orderLevels.length; i++) {
         var order = {"price": "0,00", "date": "?", "link": "", "names": [], "prices": [], "products": 0, "recip": ""};
 
+        var virtualOrder = getClassElement(orderLevels[i], "a-column a-span3");
+        if (virtualOrder) {
+            var price_tag = virtualOrder.getElementsByClassName('a-color-secondary value');
+            if (price_tag.length > 0 && price_tag[0].innerHTML.trim().includes('Audible') === false) {
+                order.price = price_tag[0].innerHTML.replace(/EUR/, "").replace(/Summe/, "").replace(/.*coins/i, "0,00").trim();
+            } else {
+                order.price = "0,00";
+            }
+        }
+
         var priceElement = getClassElement(orderLevels[i], "a-column a-span2");
-        if (priceElement) {
+        if (!virtualOrder && priceElement) {
             // sometimes there is no price listed next to the item anymore, so we have to check that and insert 0,00 if it's missing
             var price_tag = priceElement.getElementsByClassName('a-color-secondary value');
-            if (price_tag.length > 0 && price_tag[0].innerHTML.trim().includes('Audible') === false) {
+            console.log(price_tag[0].innerHTML.trim());
+            if (price_tag.length > 0) {
                 order.price = price_tag[0].innerHTML.replace(/EUR/, "").replace(/Summe/, "").replace(/.*coins/i, "0,00").trim();
             } else {
                 order.price = "0,00";
@@ -137,11 +148,21 @@ function findShipments(doc, year, page) {
                 console.log('No order number found ' + year + '/' + page);
             }
 
+            var virtualOrder = getClassElement(orderElements[i], "a-column a-span3");
+            if (virtualOrder) {
+                var price_tag = virtualOrder.getElementsByClassName('a-color-secondary value');
+                if (price_tag.length > 0) {
+                    orderPrice = price_tag[0].innerHTML.replace(/EUR/, '').replace(/Summe/, '').replace(/.*coins/i, '0,00').trim();
+                } else {
+                    orderPrice = '0,00';
+                }
+            }
+
             var priceElement = getClassElement(orderElements[i], 'a-column a-span2');
-            if (priceElement) {
+            if (!virtualOrder && priceElement) {
                 var price_tag = priceElement.getElementsByClassName('a-color-secondary value');
-                if (price_tag.length > 0 && price_tag[0].innerHTML.trim().includes('Audible') === false) {
-                    orderPrice = priceElement.getElementsByClassName('a-color-secondary value')[0].innerHTML.replace(/EUR/, '').replace(/Summe/, '').replace(/.*coins/i, '0,00').trim();
+                if (price_tag.length > 0) {
+                    orderPrice = price_tag[0].innerHTML.replace(/EUR/, '').replace(/Summe/, '').replace(/.*coins/i, '0,00').trim();
                 } else {
                     orderPrice = '0,00';
                 }
