@@ -49,8 +49,8 @@ function findOrders(doc, year, page) {
         if (priceElement) {
             // sometimes there is no price listed next to the item anymore, so we have to check that and insert 0,00 if it's missing
             var price_tag = priceElement.getElementsByClassName('a-color-secondary value');
-            if (price_tag.length > 0 && $('.a-color-secondary.value').textContent.trim().includes('Audible') === false) {
-                order.price = priceElement.getElementsByClassName('a-color-secondary value')[0].innerHTML.replace(/EUR/, "").replace(/Summe/, "").replace(/.*coins/i, "0,00").trim();
+            if (price_tag.length > 0 && price_tag[0].innerHTML.trim().includes('Audible') === false) {
+                order.price = price_tag[0].innerHTML.replace(/EUR/, "").replace(/Summe/, "").replace(/.*coins/i, "0,00").trim();
             } else {
                 order.price = "0,00";
             }
