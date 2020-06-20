@@ -32,4 +32,4 @@ Hinweise
 * Im Browser müssen für amazon.de (oder generell) Popups erlaubt werden.
 * Unter Firefox muss in den erweiterten Einstellungen (*about:config*) die Einstellung *dom.popup_maximum* auf einen ausreichend hohen Wert (z.B. 100) gesetzt werden.
 * Achtung! Das ist nichts für schwache Rechner. Je nach Umfang der Bestellhistorie werden dutzende Tabs/Fenster geöffnet und deren Inhalt gecrawlt. Bei einer extrem umfangreichen Bestellhistorie kann der Browser durchaus auch abstürzen.
-* Dieses Skript funktioniert nicht unter IE. Chrome 37 stürzt mitten in der Durchführung ab. Mit Chrome 35 hat es noch funktioniert.
+* Dieses Script funktioniert nicht unter IE. Chrome 37 stürzt mitten in der Durchführung ab. Mit Chrome 35 hat es noch funktioniert.
