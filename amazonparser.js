@@ -140,7 +140,7 @@ function findShipments(doc, year, page) {
             var priceElement = getClassElement(orderElements[i], 'a-column a-span2');
             if (priceElement) {
                 var price_tag = priceElement.getElementsByClassName('a-color-secondary value');
-                if (price_tag.length > 0) {
+                if (price_tag.length > 0 && price_tag[0].innerHTML.trim().includes('Audible') === false) {
                     orderPrice = priceElement.getElementsByClassName('a-color-secondary value')[0].innerHTML.replace(/EUR/, '').replace(/Summe/, '').replace(/.*coins/i, '0,00').trim();
                 } else {
                     orderPrice = '0,00';
