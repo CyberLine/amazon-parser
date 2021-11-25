@@ -2,7 +2,7 @@ function getClassElement(node, name) {
     if (node == null)
         return null;
 
-    if (node.className == name) return node;
+    if (node.className === name) return node;
     for (var i = 0; i < node.childNodes.length; i++) {
         var element = getClassElement(node.childNodes[i], name);
         if (element) return element;
@@ -14,21 +14,12 @@ function getClassElements(node, name) {
     if (node == null)
         return null;
 
-    if (node.className == name) return [node];
+    if (node.className === name) return [node];
     var elements = [];
     for (var i = 0; i < node.childNodes.length; i++) {
         elements = elements.concat(getClassElements(node.childNodes[i], name));
     }
     return elements;
-}
-
-function getTagElement(node, name) {
-    if (node.nodeName == name) return node;
-    for (var i = 0; i < node.childNodes.length; i++) {
-        var child = getTagElement(node.childNodes[i], name);
-        if (child) return child;
-    }
-    return null;
 }
 
 function findOrders(doc, year, page) {
@@ -37,7 +28,7 @@ function findOrders(doc, year, page) {
 
     orders[year].pages[page].done = true;
 
-    if (orderLevels.length != orderBars.length) {
+    if (orderLevels.length !== orderBars.length) {
         console.log("Syntax Error " + year + "/" + page);
         return;
     }
@@ -57,16 +48,19 @@ function findOrders(doc, year, page) {
 
         var priceElement = getClassElement(orderLevels[i], "a-column a-span2");
         if (!virtualOrder && priceElement) {
-            // sometimes there is no price listed next to the item anymore, so we have to check that and insert 0,00 if it's missing
             var price_tag = priceElement.getElementsByClassName('a-color-secondary value');
-            console.log(price_tag[0].innerHTML.trim());
             if (price_tag.length > 0) {
                 order.price = price_tag[0].innerHTML.replace(/EUR/, "").replace(/Summe/, "").replace(/.*coins/i, "0,00").trim();
             } else {
                 order.price = "0,00";
             }
         } else {
-            console.log("No price found " + year + "/" + page);
+            var price_tag = priceElement.getElementsByClassName('a-color-secondary value');
+            if (price_tag.length > 0) {
+                order.price = price_tag[0].innerHTML.replace(/EUR/, '').replace(/Summe/, '').replace(/.*coins/i, '0,00').trim();
+            } else {
+                order.price = '0,00';
+            }
         }
 
         var recipElement = getClassElement(orderLevels[i], "a-column a-span6 recipient a-span-last");
@@ -101,10 +95,9 @@ function findOrders(doc, year, page) {
             var prices = [];
 
             for (var j = 0; j < nameElements.length; j++) {
-                // sometimes there is no link to the item, then we have to fetch the name of the item from the div tag
                 var a_tags = nameElements[j].getElementsByTagName('A');
                 if (a_tags.length > 0) {
-                    names.push(nameElements[j].getElementsByTagName('A')[0].innerHTML.trim());
+                    names.push(a_tags[0].innerHTML.trim());
                 } else {
                     names.push(nameElements[j].getElementsByTagName('DIV')[0].innerHTML.trim());
                 }
@@ -167,7 +160,12 @@ function findShipments(doc, year, page) {
                     orderPrice = '0,00';
                 }
             } else {
-                console.log('No price found ' + year + '/' + page);
+                var price_tag = priceElement.getElementsByClassName('a-color-secondary value');
+                if (price_tag.length > 0) {
+                    orderPrice = price_tag[0].innerHTML.replace(/EUR/, '').replace(/Summe/, '').replace(/.*coins/i, '0,00').trim();
+                } else {
+                    orderPrice = '0,00';
+                }
             }
 
             var dateElement = getClassElement(orderElements[i], 'a-color-secondary value');
@@ -178,7 +176,6 @@ function findShipments(doc, year, page) {
             }
         }
 
-        // walking through shipments of the order
         var shipmentElements = orderElements[i].getElementsByClassName('a-box shipment');
         for (var s = 0; s < shipmentElements.length; s++) {
             var shipment = {
@@ -192,7 +189,6 @@ function findShipments(doc, year, page) {
                 'products': 0
             };
 
-            // finding shipment date:
             var topRowElement = getClassElement(shipmentElements[s], 'a-row shipment-top-row')
             var dateElement = getClassElement(topRowElement, 'a-size-medium a-color-base a-text-bold');
             if (dateElement) {
@@ -201,7 +197,6 @@ function findShipments(doc, year, page) {
                 console.log('No shipment date found ' + year + '/' + page);
             }
 
-            // finding Items of the shipment
             var nameElements = getClassElements(shipmentElements[s], 'a-fixed-left-grid-col a-col-right');
             if (nameElements.length > 0) {
                 var names = [];
@@ -284,7 +279,7 @@ function getEuroString(x) {
 
     for (var i = 0; i < euro.length - 1; i++) {
         euroTsd += euro.charAt(i);
-        if (((euro.length - i) % 3) == 1) {
+        if (((euro.length - i) % 3) === 1) {
             euroTsd += ".";
         }
     }
@@ -294,13 +289,20 @@ function getEuroString(x) {
 }
 
 function getOverviewLine(data) {
+    if (data.products) {
+        var prices = "<td align=\"right\">" + getEuroString(data.cent / 100 / data.products) + "</td>" +
+            "<td align=\"right\">" + getEuroString(data.cent / 100 / data.month) + "</td>";
+    } else {
+        var prices = "<td align=\"right\">0,00</td>" +
+            "<td align=\"right\">0,00</td>";
+    }
+
     return "<tr>" +
         "<td align=\"right\">" + data.name + "</td>" +
         "<td align=\"right\">" + getEuroString(data.cent / 100) + "</td>" +
         "<td align=\"right\">" + data.orders + "</td>" +
         "<td align=\"right\">" + data.products + "</td>" +
-        "<td align=\"right\">" + getEuroString(data.cent / 100 / data.products) + "</td>" +
-        "<td align=\"right\">" + getEuroString(data.cent / 100 / data.month) + "</td>" +
+        prices +
         "</tr>";
 }
 
